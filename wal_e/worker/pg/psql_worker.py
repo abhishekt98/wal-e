@@ -129,7 +129,7 @@ class PgBackupStatements(object):
                 "SELECT file_name, "
                 "  lpad(file_offset::text, 8, '0') AS file_offset "
                 "FROM pg_{0}file_name_offset("
-                "  pg_start_backup('{1}'))".format(cls._wal_name(), label),
+                "  pg_backup_start('{1}'))".format(cls._wal_name(), label),
                 error_handler=handler))
 
     @classmethod
@@ -149,7 +149,7 @@ class PgBackupStatements(object):
                 "SELECT file_name, "
                 "  lpad(file_offset::text, 8, '0') AS file_offset "
                 "FROM pg_{0}file_name_offset("
-                "  pg_stop_backup())".format(cls._wal_name()),
+                "  pg_backup_stop())".format(cls._wal_name()),
                 error_handler=handler))
 
     @classmethod
