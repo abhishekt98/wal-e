@@ -170,11 +170,13 @@ class Backup(object):
         backup_stop_good = False
         while_offline = False
         start_backup_info = None
-        new_env = os.environ.copy()
-        pg_user = new_env["PGUSER"]
-        conn = psycopg2.connect("dbname=postgres user={pg_user}")
-        cur = conn.cursor()
+
         print("------------DEBUGGING--------------")
+        new_env = os.environ.copy()
+        print(new_env["PGUSER"])
+        conn = psycopg2.connect("dbname=postgres user={0}".format(new_env["PGUSER"]))
+        cur = conn.cursor()
+        
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
 
