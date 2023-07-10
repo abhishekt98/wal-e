@@ -130,7 +130,7 @@ class PgBackupStatements(object):
         return cur.fetchall()
 
     @classmethod
-    def run_stop_backup(cls):
+    def run_stop_backup(cls, cur):
         """
         Stop a hot backup, if it was running, or error
 
