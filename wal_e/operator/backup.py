@@ -173,7 +173,6 @@ class Backup(object):
 
         print("------------DEBUGGING BACKUP--------------")
         new_env = os.environ.copy()
-        print(new_env["PGUSER"])
         conn = psycopg2.connect("dbname=postgres user={0}".format(new_env["PGUSER"]))
         cur = conn.cursor()
         print("-----------------------CURSOR")
@@ -181,7 +180,8 @@ class Backup(object):
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
 
-        start_backup_info = PgBackupStatements.run_start_backup(cur)
+        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_{0}file_name_offset(pg_backup_start('{1}')) ".format(cls._wal_name(),label))
+        start_backup_info = cur.fetchall()
         print("----------BACKUP RESULT------------------")
         print(start_backup_info)
         # try:
