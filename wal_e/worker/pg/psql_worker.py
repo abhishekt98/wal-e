@@ -44,8 +44,6 @@ def psql_csv_run(sql_command, error_handler=None):
     new_env = os.environ.copy()
     new_env.setdefault('PGOPTIONS', '')
     new_env["PGOPTIONS"] += ' --statement-timeout=0'
-    print("Printing envs")
-    print(new_env)
     psql_proc = popen_nonblock([PSQL_BIN, '-d', 'postgres', '--no-password',
                                 '--no-psqlrc', '-c', csv_query],
                                stdout=PIPE,
@@ -107,7 +105,7 @@ class PgBackupStatements(object):
         return cls._WAL_NAME
 
     @classmethod
-    def run_start_backup(crs):
+    def run_start_backup(cur):
         """
         Connects to a server and attempts to start a hot backup
 
@@ -125,6 +123,8 @@ class PgBackupStatements(object):
         # See http://bugs.python.org/issue5094
         label = 'freeze_start_' + (datetime.datetime.utcnow()
                                    .replace(tzinfo=UTC()).isoformat())
+        print("------------backup start")
+        print(cur)
         return cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('{0}')) ").format(label)
 
     @classmethod

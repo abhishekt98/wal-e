@@ -176,7 +176,8 @@ class Backup(object):
         print(new_env["PGUSER"])
         conn = psycopg2.connect("dbname=postgres user={0}".format(new_env["PGUSER"]))
         cur = conn.cursor()
-        
+        print("-----------------------CURSOR")
+        print(cur)
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
 
