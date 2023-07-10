@@ -170,13 +170,19 @@ class Backup(object):
         backup_stop_good = False
         while_offline = False
         start_backup_info = None
-
+        new_env = os.environ.copy()
+        pg_user = new_env["PGUSER"]
+        conn = psycopg2.connect("dbname=postgres user={pg_user}")
+        cur = conn.cursor()
+        print("------------DEBUGGING--------------")
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
 
         try:
             if not while_offline:
-                start_backup_info = PgBackupStatements.run_start_backup()
+                start_backup_info = PgBackupStatements.run_start_backup(cur)
+                print("----------------------------")
+                print(start_backup_info)
                 version = PgBackupStatements.pg_version()['version']
             else:
                 if os.path.exists(os.path.join(data_directory,
