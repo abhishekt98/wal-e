@@ -171,7 +171,7 @@ class Backup(object):
         while_offline = False
         start_backup_info = None
 
-        print("------------DEBUGGING--------------")
+        print("------------DEBUGGING BACKUP--------------")
         new_env = os.environ.copy()
         print(new_env["PGUSER"])
         conn = psycopg2.connect("dbname=postgres user={0}".format(new_env["PGUSER"]))

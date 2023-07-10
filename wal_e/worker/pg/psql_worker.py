@@ -105,7 +105,7 @@ class PgBackupStatements(object):
         return cls._WAL_NAME
 
     @classmethod
-    def run_start_backup(cur):
+    def run_start_backup(cls, cur):
         """
         Connects to a server and attempts to start a hot backup
 
