@@ -181,8 +181,7 @@ class Backup(object):
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
         
-        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('test')) ")
-        start_backup_info = cur.fetchall()
+        start_backup_info = PgBackupStatements.run_start_backup(cur)
         print("----------BACKUP RESULT------------------")
         print(start_backup_info)
         print("----------STOP BACKUP RESULT------------------")
