@@ -185,8 +185,7 @@ class Backup(object):
         print("----------BACKUP RESULT------------------")
         print(start_backup_info)
         print("----------STOP BACKUP RESULT------------------")
-        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset((pg_backup_stop()).lsn) ")
-        stop_backup_info = cur.fetchall()
+        stop_backup_info = PgBackupStatements.run_stop_backup(cur)
         print(stop_backup_info)
         # try:
         #     if not while_offline:
