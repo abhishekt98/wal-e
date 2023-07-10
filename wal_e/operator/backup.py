@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import psycopg2
+import datetime
 
 from io import BytesIO
 from wal_e import log_help
@@ -179,7 +180,9 @@ class Backup(object):
         print(cur)
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
-
+        
+        label = 'freeze_start_' + (datetime.datetime.utcnow()
+                                   .replace(tzinfo=UTC()).isoformat())
         cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('{1}')) ".format(label))
         start_backup_info = cur.fetchall()
         print("----------BACKUP RESULT------------------")
