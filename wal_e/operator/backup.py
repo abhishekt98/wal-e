@@ -180,89 +180,83 @@ class Backup(object):
         print(cur)
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
-        
-        start_backup_info = PgBackupStatements.run_start_backup(cur)
-        print("----------BACKUP RESULT------------------")
-        print(start_backup_info)
-        print("----------STOP BACKUP RESULT------------------")
-        stop_backup_info = PgBackupStatements.run_stop_backup(cur)
-        print(stop_backup_info)
-        # try:
-        #     if not while_offline:
-        #         start_backup_info = PgBackupStatements.run_start_backup(cur)
-        #         print("----------BACKUP RESULT------------------")
-        #         print(start_backup_info)
-        #         version = PgBackupStatements.pg_version()['version']
-        #     else:
-        #         if os.path.exists(os.path.join(data_directory,
-        #                                        'postmaster.pid')):
-        #             hint = ('Shut down postgres.  '
-        #                     'If there is a stale lockfile, '
-        #                     'then remove it after being very sure postgres '
-        #                     'is not running.')
-        #             raise UserException(
-        #                 msg='while_offline set, but pg looks to be running',
-        #                 detail='Found a postmaster.pid lockfile, and aborting',
-        #                 hint=hint)
 
-        #         ctrl_data = PgControlDataParser(data_directory)
-        #         start_backup_info = ctrl_data.last_xlog_file_name_and_offset()
-        #         version = ctrl_data.pg_version()
+        try:
+            if not while_offline:
+                start_backup_info = PgBackupStatements.run_start_backup(cur)
+                print("----------BACKUP RESULT------------------")
+                print(start_backup_info)
+                version = PgBackupStatements.pg_version()['version']
+            else:
+                if os.path.exists(os.path.join(data_directory,
+                                               'postmaster.pid')):
+                    hint = ('Shut down postgres.  '
+                            'If there is a stale lockfile, '
+                            'then remove it after being very sure postgres '
+                            'is not running.')
+                    raise UserException(
+                        msg='while_offline set, but pg looks to be running',
+                        detail='Found a postmaster.pid lockfile, and aborting',
+                        hint=hint)
 
-        #     ret_tuple = self._upload_pg_cluster_dir(
-        #         start_backup_info, data_directory, version=version, *args,
-        #         **kwargs)
-        #     spec, uploaded_to, expanded_size_bytes = ret_tuple
-        #     upload_good = True
-        # finally:
-        #     if not upload_good:
-        #         logger.warning(
-        #             'blocking on sending WAL segments',
-        #             detail=('The backup was not completed successfully, '
-        #                     'but we have to wait anyway.  '
-        #                     'See README: TODO about pg_cancel_backup'))
+                ctrl_data = PgControlDataParser(data_directory)
+                start_backup_info = ctrl_data.last_xlog_file_name_and_offset()
+                version = ctrl_data.pg_version()
 
-        #     if not while_offline:
-        #         stop_backup_info = PgBackupStatements.run_stop_backup(cur)
-        #         print("--------backup stop result--------")
-        #         print(stop_backup_info)
-        #     else:
-        #         stop_backup_info = start_backup_info
-        #     backup_stop_good = True
+            # ret_tuple = self._upload_pg_cluster_dir(
+            #     start_backup_info, data_directory, version=version, *args,
+            #     **kwargs)
+            # spec, uploaded_to, expanded_size_bytes = ret_tuple
+            # upload_good = True
+        finally:
+            if not upload_good:
+                logger.warning(
+                    'blocking on sending WAL segments',
+                    detail=('The backup was not completed successfully, '
+                            'but we have to wait anyway.  '
+                            'See README: TODO about pg_cancel_backup'))
 
-        # # XXX: Ugly, this is more of a 'worker' task because it might
-        # # involve retries and error messages, something that is not
-        # # treated by the "operator" category of modules.  So
-        # # basically, if this small upload fails, the whole upload
-        # # fails!
-        # if upload_good and backup_stop_good:
-        #     # Try to write a sentinel file to the cluster backup
-        #     # directory that indicates that the base backup upload has
-        #     # definitely run its course and also communicates what WAL
-        #     # segments are needed to get to consistency.
-        #     sentinel_content = json.dumps(
-        #         {'wal_segment_backup_stop':
-        #             stop_backup_info['file_name'],
-        #          'wal_segment_offset_backup_stop':
-        #             stop_backup_info['file_offset'],
-        #          'expanded_size_bytes': expanded_size_bytes,
-        #          'spec': spec})
+            if not while_offline:
+                stop_backup_info = PgBackupStatements.run_stop_backup(cur)
+                print("----------STOP BACKUP RESULT------------------")
+                print(stop_backup_info)
+            else:
+                stop_backup_info = start_backup_info
+            backup_stop_good = True
 
-        #     # XXX: should use the storage operators.
-        #     #
-        #     # XXX: distinguish sentinels by *PREFIX* not suffix,
-        #     # which makes searching harder. (For the next version
-        #     # bump).
+        # XXX: Ugly, this is more of a 'worker' task because it might
+        # involve retries and error messages, something that is not
+        # treated by the "operator" category of modules.  So
+        # basically, if this small upload fails, the whole upload
+        # fails!
+        if upload_good and backup_stop_good:
+            # Try to write a sentinel file to the cluster backup
+            # directory that indicates that the base backup upload has
+            # definitely run its course and also communicates what WAL
+            # segments are needed to get to consistency.
+            sentinel_content = json.dumps(
+                {'wal_segment_backup_stop':
+                    stop_backup_info['file_name'],
+                 'wal_segment_offset_backup_stop':
+                    stop_backup_info['file_offset'],
+                 'expanded_size_bytes': expanded_size_bytes,
+                 'spec': spec})
 
-        #     uri_put_file(self.creds,
-        #                      uploaded_to + '_backup_stop_sentinel.json',
-        #                      BytesIO(sentinel_content.encode("utf8")),
-        #                      content_type='application/json')
-        # else:
-        #     # NB: Other exceptions should be raised before this that
-        #     # have more informative results, it is intended that this
-        #     # exception never will get raised.
-        #     raise UserCritical('could not complete backup process')
+            # XXX: should use the storage operators.
+            #
+            # XXX: distinguish sentinels by *PREFIX* not suffix,
+            # which makes searching harder. (For the next version
+            # bump).
+
+            uri_put_file(self.creds,
+                             uploaded_to + '_backup_stop_sentinel.json',
+                             BytesIO(sentinel_content.encode("utf8")),
+                             content_type='application/json')
+        else:
+            # NB: Other exceptions should be raised before this that
+            # have more informative results, it is intended that this
+            # exception never will get raised.
+            raise UserCritical('could not complete backup process')
 
     def wal_archive(self, wal_path, concurrency=1):
         """
