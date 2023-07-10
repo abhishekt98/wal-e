@@ -125,7 +125,9 @@ class PgBackupStatements(object):
                                    .replace(tzinfo=UTC()).isoformat())
         print("------------backup start")
         print(cur)
-        return cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('{0}')) ").format(label)
+        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('{0}')) ").format(label)
+        print("-------backup start done-----")
+        return cur.fetchall()
 
     @classmethod
     def run_stop_backup(cls):
@@ -140,12 +142,11 @@ class PgBackupStatements(object):
             assert popen.returncode != 0
             raise UserException('Could not stop hot backup')
 
-        return cls._dict_transform(psql_csv_run(
-                "SELECT file_name, "
-                "  lpad(file_offset::text, 8, '0') AS file_offset "
-                "FROM pg_{0}file_name_offset("
-                "  (SELECT lsn FROM pg_backup_stop()))".format(cls._wal_name()),
-                error_handler=handler))
+        print("------------backup stop")
+        print(cur)
+        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset((pg_backup_stop()).lsn) ")
+        print("-------backup stop done-----")
+        return cur.fetchall()
 
     @classmethod
     def pg_version(cls):
