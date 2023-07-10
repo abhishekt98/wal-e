@@ -127,7 +127,7 @@ class PgBackupStatements(object):
         print(cur)
         cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('{0}')) ".format(label))
         print("-------backup start done-----")
-        record = cur.fetchall()
+        records = cur.fetchall()
         return { "file_name": records[0][0], "file_offset": records[0][1]}
 
     @classmethod
@@ -147,7 +147,7 @@ class PgBackupStatements(object):
         print(cur)
         cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset((pg_backup_stop()).lsn) ")
         print("-------backup stop done-----")
-        record = cur.fetchall()
+        records = cur.fetchall()
         return { "file_name": records[0][0], "file_offset": records[0][1]}
 
     @classmethod

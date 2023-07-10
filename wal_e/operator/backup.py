@@ -203,11 +203,11 @@ class Backup(object):
                 start_backup_info = ctrl_data.last_xlog_file_name_and_offset()
                 version = ctrl_data.pg_version()
 
-            # ret_tuple = self._upload_pg_cluster_dir(
-            #     start_backup_info, data_directory, version=version, *args,
-            #     **kwargs)
-            # spec, uploaded_to, expanded_size_bytes = ret_tuple
-            # upload_good = True
+            ret_tuple = self._upload_pg_cluster_dir(
+                start_backup_info, data_directory, version=version, *args,
+                **kwargs)
+            spec, uploaded_to, expanded_size_bytes = ret_tuple
+            upload_good = True
         finally:
             if not upload_good:
                 logger.warning(
