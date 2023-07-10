@@ -1,7 +1,6 @@
 import csv
 import datetime
 import os
-
 from subprocess import PIPE
 
 from wal_e.piper import popen_nonblock
@@ -45,6 +44,8 @@ def psql_csv_run(sql_command, error_handler=None):
     new_env = os.environ.copy()
     new_env.setdefault('PGOPTIONS', '')
     new_env["PGOPTIONS"] += ' --statement-timeout=0'
+    print("Printing envs")
+    print(new_env)
     psql_proc = popen_nonblock([PSQL_BIN, '-d', 'postgres', '--no-password',
                                 '--no-psqlrc', '-c', csv_query],
                                stdout=PIPE,

@@ -6,6 +6,7 @@ import itertools
 import json
 import os
 import sys
+import psycopg2
 
 from io import BytesIO
 from wal_e import log_help
@@ -169,6 +170,7 @@ class Backup(object):
         backup_stop_good = False
         while_offline = False
         start_backup_info = None
+
         if 'while_offline' in kwargs:
             while_offline = kwargs.pop('while_offline')
 
