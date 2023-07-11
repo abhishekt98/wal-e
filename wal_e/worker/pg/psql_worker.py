@@ -124,7 +124,7 @@ class PgBackupStatements(object):
         # See http://bugs.python.org/issue5094
         label = 'freeze_start_' + (datetime.datetime.utcnow()
                                    .replace(tzinfo=UTC()).isoformat())
-        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_start_backup('{0}')) ".format(label))
+        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_backup_start('{0}')) ".format(label))
         records = cur.fetchall()
         return { "file_name": records[0][0], "file_offset": records[0][1]}
 
