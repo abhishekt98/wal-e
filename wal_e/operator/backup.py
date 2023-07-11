@@ -214,7 +214,7 @@ class Backup(object):
                 start_backup_info, backup_directory , version=version, *args,
                 **kwargs)
             spec, uploaded_to, expanded_size_bytes = ret_tuple
-            os.rmdir(backup_directory)
+            shutil.rmtree(backup_directory)
             upload_good = True
 
         finally:
