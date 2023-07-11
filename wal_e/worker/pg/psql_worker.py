@@ -149,7 +149,7 @@ class PgBackupStatements(object):
         text_file.close()
 
         #Fetch offset value
-        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset('{stop_records[0][0]}')")
+        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset('{0}')".format(stop_records[0][0]))
         offset_records = cur.fetchall()
         return { "file_name": offset_records[0][0], "file_offset": offset_records[0][1]}
 
