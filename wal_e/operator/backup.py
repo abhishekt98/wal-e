@@ -8,6 +8,7 @@ import os
 import sys
 import psycopg2
 import datetime
+import shutil
 
 from io import BytesIO
 from wal_e import log_help
@@ -171,6 +172,7 @@ class Backup(object):
         backup_stop_good = False
         while_offline = False
         start_backup_info = None
+        backup_directory = "/tmp/data"
 
         new_env = os.environ.copy()
         conn = psycopg2.connect("dbname=postgres user={0}".format(new_env["PGUSER"]))
@@ -199,11 +201,22 @@ class Backup(object):
                 start_backup_info = ctrl_data.last_xlog_file_name_and_offset()
                 version = ctrl_data.pg_version()
 
+            shutil.copytree(data_directory, backup_directory)
+
+            if not while_offline:
+                stop_backup_info = PgBackupStatements.run_stop_backup(cur)
+                cur.close()
+                conn.close()
+            else:
+                stop_backup_info = start_backup_info
+
             ret_tuple = self._upload_pg_cluster_dir(
-                start_backup_info, data_directory, version=version, *args,
+                start_backup_info, backup_directory , version=version, *args,
                 **kwargs)
             spec, uploaded_to, expanded_size_bytes = ret_tuple
+            os.rmdir(backup_directory)
             upload_good = True
+
         finally:
             if not upload_good:
                 logger.warning(
@@ -212,12 +225,6 @@ class Backup(object):
                             'but we have to wait anyway.  '
                             'See README: TODO about pg_cancel_backup'))
 
-            if not while_offline:
-                stop_backup_info = PgBackupStatements.run_stop_backup(cur)
-                cur.close()
-                conn.close()
-            else:
-                stop_backup_info = start_backup_info
             backup_stop_good = True
 
         # XXX: Ugly, this is more of a 'worker' task because it might

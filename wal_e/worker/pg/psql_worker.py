@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+
 from subprocess import PIPE
 
 from wal_e.piper import popen_nonblock
@@ -139,10 +140,18 @@ class PgBackupStatements(object):
         def handler(popen):
             assert popen.returncode != 0
             raise UserException('Could not stop hot backup')
+        cur.execute("select * from pg_backup_stop()")
+        stop_records = cur.fetchall()
 
-        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset(pg_stop_backup())")
-        records = cur.fetchall()
-        return { "file_name": records[0][0], "file_offset": records[0][1]}
+        #Create backup_label file
+        text_file = open("/tmp/data/backup_label", "w")
+        text_file.write(stop_records[0][1])
+        text_file.close()
+
+        #Fetch offset value
+        cur.execute("SELECT file_name,lpad(file_offset::text, 8, '0') AS file_offset FROM pg_walfile_name_offset('{stop_records[0][0]}')")
+        offset_records = cur.fetchall()
+        return { "file_name": offset_records[0][0], "file_offset": offset_records[0][1]}
 
     @classmethod
     def pg_version(cls):
